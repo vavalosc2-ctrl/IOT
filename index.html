@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCC1301 - Panel IoT</title>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0f172a;color:#e5e7eb}
+header{padding:22px;text-align:center;background:#111827;border-bottom:1px solid #334155}
+h1{margin:0 0 7px;font-size:27px}
+.subtitle{color:#94a3b8}
+.container{max-width:1100px;margin:auto;padding:22px}
+.status{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.badge{padding:10px 15px;border-radius:10px;background:#1e293b;border:1px solid #334155}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:8px}
+.connected .dot{background:#22c55e}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px}
+.label{font-size:14px;color:#94a3b8;margin-bottom:12px}
+.value{font-size:36px;font-weight:bold}
+.unit{font-size:16px;color:#94a3b8;margin-left:5px}
+.raw{margin-top:12px;color:#94a3b8;font-size:13px}
+.section{margin-top:25px}
+pre{background:#020617;padding:16px;border-radius:12px;overflow:auto;color:#cbd5e1}
+footer{text-align:center;color:#64748b;padding:25px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>MONITOREO IoT — PCC1301</h1>
+<div class="subtitle">ESP32 + MAX485 + Modbus RTU + MQTT</div>
+</header>
+
+<div class="container">
+
+<div class="status">
+<div class="badge" id="mqttStatus"><span class="dot"></span>MQTT: Desconectado</div>
+<div class="badge">Broker: artvic.cloud.shiftr.io</div>
+<div class="badge" id="lastUpdate">Última actualización: --</div>
+</div>
+
+<div class="grid">
+
+<div class="card">
+<div class="label">VOLTAJE DE BATERÍA · 40061</div>
+<div><span class="value" id="bateria">--</span><span class="unit">VDC</span></div>
+<div class="raw">RAW: <span id="rawBateria">--</span></div>
+</div>
+
+<div class="card">
+<div class="label">PRESIÓN DE ACEITE · 40062</div>
+<div><span class="value" id="presion">--</span><span class="unit">PSI</span></div>
+<div class="raw">Valor original: <span id="kpa">--</span> kPa</div>
+</div>
+
+<div class="card">
+<div class="label">TEMPERATURA REFRIGERANTE · 40064</div>
+<div><span class="value" id="temperatura">--</span><span class="unit">°F</span></div>
+<div class="raw">Equivalente: <span id="celsius">--</span> °C</div>
+</div>
+
+<div class="card">
+<div class="label">VELOCIDAD DEL MOTOR · 40068</div>
+<div><span class="value" id="rpm">--</span><span class="unit">RPM</span></div>
+<div class="raw">Estado: <span id="motorEstado">Esperando datos</span></div>
+</div>
+
+</div>
+
+<div class="section">
+<h2>Telemetría recibida</h2>
+<pre id="json">Esperando mensaje MQTT...</pre>
+</div>
+
+</div>
+
+<footer>PCC1301 IoT Dashboard</footer>
+
+<script>
+// =====================================================
+// CONFIGURACIÓN SHIFTR.IO
+// =====================================================
+// Cloud shiftr.io usa WebSocket seguro por WSS en 443.
+// Usuario/token:
+// usuario = artvic
+// contraseña = hola
+
+const MQTT_URL = "wss://artvic:hola@artvic.cloud.shiftr.io:443";
+const CLIENT_ID = "dashboard_pcc1301_" + Math.random().toString(16).substring(2,10);
+
+const TOPIC_TELEMETRIA = "pcc1301/telemetria";
+const TOPIC_BATERIA = "pcc1301/bateria";
+const TOPIC_PRESION = "pcc1301/presion_psi";
+const TOPIC_TEMPERATURA = "pcc1301/temperatura_f";
+const TOPIC_RPM = "pcc1301/rpm";
+
+let lastData = {};
+
+const client = mqtt.connect(MQTT_URL, {
+    clientId: CLIENT_ID,
+    clean: true,
+    reconnectPeriod: 3000,
+    connectTimeout: 10000
+});
+
+client.on("connect", function() {
+    setStatus(true);
+
+    client.subscribe([
+        TOPIC_TELEMETRIA,
+        TOPIC_BATERIA,
+        TOPIC_PRESION,
+        TOPIC_TEMPERATURA,
+        TOPIC_RPM
+    ], function(err) {
+        if (err) {
+            console.error("Error suscribiendo:", err);
+        }
+    });
+});
+
+client.on("reconnect", function() {
+    setStatus(false, "Reconectando...");
+});
+
+client.on("offline", function() {
+    setStatus(false, "Sin conexión");
+});
+
+client.on("error", function(err) {
+    console.error("MQTT:", err);
+    setStatus(false, "Error MQTT");
+});
+
+client.on("message", function(topic, message) {
+    const payload = message.toString();
+
+    if (topic === TOPIC_TELEMETRIA) {
+        try {
+            const data = JSON.parse(payload);
+            lastData = {...lastData, ...data};
+            actualizarDashboard();
+            document.getElementById("json").textContent =
+                JSON.stringify(data, null, 2);
+        } catch(e) {
+            console.error("JSON inválido:", payload);
+        }
+    } else {
+        actualizarIndividual(topic, payload);
+    }
+
+    document.getElementById("lastUpdate").textContent =
+        "Última actualización: " + new Date().toLocaleTimeString();
+});
+
+function actualizarDashboard() {
+    if (lastData.bateria !== undefined)
+        document.getElementById("bateria").textContent =
+            Number(lastData.bateria).toFixed(1);
+
+    if (lastData.presion_psi !== undefined)
+        document.getElementById("presion").textContent =
+            Number(lastData.presion_psi).toFixed(1);
+
+    if (lastData.temperatura_f !== undefined)
+        document.getElementById("temperatura").textContent =
+            Number(lastData.temperatura_f).toFixed(1);
+
+    if (lastData.rpm !== undefined) {
+        const r = Number(lastData.rpm);
+        document.getElementById("rpm").textContent = r.toFixed(1);
+        document.getElementById("motorEstado").textContent =
+            r > 0 ? "Motor en marcha" : "Motor detenido";
+    }
+
+    // Cálculos auxiliares para mostrar también las unidades originales
+    if (lastData.presion_psi !== undefined)
+        document.getElementById("kpa").textContent =
+            (Number(lastData.presion_psi) / 0.145038).toFixed(1);
+
+    if (lastData.temperatura_f !== undefined)
+        document.getElementById("celsius").textContent =
+            ((Number(lastData.temperatura_f)-32)/1.8).toFixed(1);
+}
+
+function actualizarIndividual(topic, payload) {
+    const v = Number(payload);
+
+    if (topic === TOPIC_BATERIA) {
+        lastData.bateria = v;
+    }
+    if (topic === TOPIC_PRESION) {
+        lastData.presion_psi = v;
+    }
+    if (topic === TOPIC_TEMPERATURA) {
+        lastData.temperatura_f = v;
+    }
+    if (topic === TOPIC_RPM) {
+        lastData.rpm = v;
+    }
+
+    actualizarDashboard();
+}
+
+function setStatus(connected, text) {
+    const box = document.getElementById("mqttStatus");
+
+    if (connected) {
+        box.classList.add("connected");
+        box.innerHTML = '<span class="dot"></span>MQTT: Conectado';
+    } else {
+        box.classList.remove("connected");
+        box.innerHTML =
+            '<span class="dot"></span>MQTT: ' +
+            (text || "Desconectado");
+    }
+}
+</script>
+
+</body>
+</html>
