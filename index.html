@@ -18,6 +18,11 @@ h1{margin:0 0 7px;font-size:27px}
 .connected .dot{background:#22c55e}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
 .card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px}
+.control-card{grid-column:span 2}
+.motor-btn{width:100%;padding:16px;border:0;border-radius:12px;color:white;font-size:18px;font-weight:bold;cursor:pointer}
+.motor-btn.stop{background:#dc2626}
+.motor-btn.start{background:#16a34a}
+.motor-btn:disabled{opacity:.55;cursor:not-allowed}
 .label{font-size:14px;color:#94a3b8;margin-bottom:12px}
 .value{font-size:36px;font-weight:bold}
 .unit{font-size:16px;color:#94a3b8;margin-left:5px}
@@ -31,7 +36,7 @@ footer{text-align:center;color:#64748b;padding:25px}
 
 <header>
 <h1>MONITOREO IoT — PCC1301</h1>
-<div class="subtitle">ESP32 + MAX485 + Modbus RTU + MQTT</div>
+<div class="subtitle">ESP32 + MAX485 + Modbus RTU + MQTT · PCC1301</div>
 </header>
 
 <div class="container">
@@ -43,6 +48,13 @@ footer{text-align:center;color:#64748b;padding:25px}
 </div>
 
 <div class="grid">
+
+<div class="card control-card">
+<div class="label">CONTROL DE ARRANQUE / PARADA · 40300</div>
+<button id="btnMotor" class="motor-btn stop" onclick="toggleMotor()">ARRANCAR MOTOR</button>
+<div class="raw">Orden enviada por MQTT al ESP32</div>
+<div class="raw">Estado: <span id="controlEstado">Esperando</span></div>
+</div>
 
 <div class="card">
 <div class="label">VOLTAJE DE BATERÍA · 40061</div>
@@ -65,7 +77,12 @@ footer{text-align:center;color:#64748b;padding:25px}
 <div class="card">
 <div class="label">VELOCIDAD DEL MOTOR · 40068</div>
 <div><span class="value" id="rpm">--</span><span class="unit">RPM</span></div>
-<div class="raw">Estado: <span id="motorEstado">Esperando datos</span></div>
+</div>
+
+<div class="card">
+<div class="label">ESTADO DEL MOTOR · 40011</div>
+<div><span class="value" id="estadoMotor">--</span></div>
+<div class="raw">Modbus: <span id="estadoMotorRaw">--</span></div>
 </div>
 
 </div>
@@ -96,8 +113,11 @@ const TOPIC_BATERIA = "pcc1301/bateria";
 const TOPIC_PRESION = "pcc1301/presion_psi";
 const TOPIC_TEMPERATURA = "pcc1301/temperatura_f";
 const TOPIC_RPM = "pcc1301/rpm";
+const TOPIC_ESTADO_MOTOR = "pcc1301/estado_motor";
+const TOPIC_CONTROL = "pcc1301/control/arranque";
 
 let lastData = {};
+let motorEncendido = false;
 
 const client = mqtt.connect(MQTT_URL, {
     clientId: CLIENT_ID,
@@ -114,7 +134,8 @@ client.on("connect", function() {
         TOPIC_BATERIA,
         TOPIC_PRESION,
         TOPIC_TEMPERATURA,
-        TOPIC_RPM
+        TOPIC_RPM,
+        TOPIC_ESTADO_MOTOR
     ], function(err) {
         if (err) {
             console.error("Error suscribiendo:", err);
@@ -172,8 +193,15 @@ function actualizarDashboard() {
     if (lastData.rpm !== undefined) {
         const r = Number(lastData.rpm);
         document.getElementById("rpm").textContent = r.toFixed(1);
-        document.getElementById("motorEstado").textContent =
-            r > 0 ? "Motor en marcha" : "Motor detenido";
+    }
+
+    if (lastData.estado_motor !== undefined) {
+        const e = Number(lastData.estado_motor);
+        motorEncendido = e === 1;
+        document.getElementById("estadoMotor").textContent =
+            motorEncendido ? "ENCENDIDO" : "APAGADO";
+        document.getElementById("estadoMotorRaw").textContent = e;
+        actualizarBotonMotor();
     }
 
     // Cálculos auxiliares para mostrar también las unidades originales
@@ -202,7 +230,38 @@ function actualizarIndividual(topic, payload) {
         lastData.rpm = v;
     }
 
+    if (topic === TOPIC_ESTADO_MOTOR) {
+        lastData.estado_motor = v;
+    }
+
     actualizarDashboard();
+}
+
+function toggleMotor() {
+    const nuevoEstado = motorEncendido ? 0 : 1;
+
+    if (!client.connected) {
+        document.getElementById("controlEstado").textContent =
+            "MQTT desconectado";
+        return;
+    }
+
+    client.publish(TOPIC_CONTROL, String(nuevoEstado), {qos: 0, retain: false});
+
+    document.getElementById("controlEstado").textContent =
+        nuevoEstado === 1 ? "Orden ARRANQUE enviada" : "Orden PARADA enviada";
+}
+
+function actualizarBotonMotor() {
+    const btn = document.getElementById("btnMotor");
+
+    if (motorEncendido) {
+        btn.textContent = "PARAR MOTOR";
+        btn.className = "motor-btn start";
+    } else {
+        btn.textContent = "ARRANCAR MOTOR";
+        btn.className = "motor-btn stop";
+    }
 }
 
 function setStatus(connected, text) {
