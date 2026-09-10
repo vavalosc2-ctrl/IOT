@@ -7,29 +7,185 @@
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0f172a;color:#e5e7eb}
-header{padding:22px;text-align:center;background:#111827;border-bottom:1px solid #334155}
-h1{margin:0 0 7px;font-size:27px}
-.subtitle{color:#94a3b8}
-.container{max-width:1100px;margin:auto;padding:22px}
-.status{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.badge{padding:10px 15px;border-radius:10px;background:#1e293b;border:1px solid #334155}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:8px}
-.connected .dot{background:#22c55e}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
-.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px}
-.control-card{grid-column:span 2}
-.motor-btn{width:100%;padding:16px;border:0;border-radius:12px;color:white;font-size:18px;font-weight:bold;cursor:pointer}
-.motor-btn.stop{background:#dc2626}
-.motor-btn.start{background:#16a34a}
-.motor-btn:disabled{opacity:.55;cursor:not-allowed}
-.label{font-size:14px;color:#94a3b8;margin-bottom:12px}
-.value{font-size:36px;font-weight:bold}
-.unit{font-size:16px;color:#94a3b8;margin-left:5px}
-.raw{margin-top:12px;color:#94a3b8;font-size:13px}
-.section{margin-top:25px}
-pre{background:#020617;padding:16px;border-radius:12px;overflow:auto;color:#cbd5e1}
-footer{text-align:center;color:#64748b;padding:25px}
+:root{
+  --bg:#07111f;
+  --panel:#0d1b2e;
+  --panel2:#10243b;
+  --line:#213957;
+  --text:#eef6ff;
+  --muted:#8fa7bf;
+  --accent:#28b7ff;
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(40,183,255,.10),transparent 28%),
+    radial-gradient(circle at 90% 10%,rgba(34,197,94,.07),transparent 25%),
+    linear-gradient(145deg,#050b14,#091625 55%,#07111f);
+  color:var(--text);
+  min-height:100vh;
+}
+body:before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;opacity:.22;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:36px 36px;
+}
+header{
+  position:relative;
+  padding:26px 22px 24px;
+  text-align:center;
+  background:rgba(7,17,31,.88);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 8px 30px rgba(0,0,0,.22);
+}
+h1{
+  margin:0 0 7px;
+  font-size:30px;
+  letter-spacing:1.2px;
+  font-weight:800;
+}
+.subtitle{color:var(--muted);font-size:14px;letter-spacing:.5px}
+.container{max-width:1180px;margin:auto;padding:24px 22px 10px}
+.status{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.badge{
+  padding:10px 15px;border-radius:12px;
+  background:rgba(13,27,46,.88);
+  border:1px solid var(--line);
+  color:#cbd9e8;font-size:13px;
+  box-shadow:0 8px 22px rgba(0,0,0,.16);
+}
+.dot{
+  display:inline-block;width:9px;height:9px;border-radius:50%;
+  background:var(--red);margin-right:8px;
+  box-shadow:0 0 10px rgba(239,68,68,.65)
+}
+.connected .dot{
+  background:var(--green);
+  box-shadow:0 0 12px rgba(34,197,94,.8)
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:17px
+}
+.card{
+  grid-column:span 4;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg,rgba(16,36,59,.96),rgba(10,25,42,.96));
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:21px;
+  min-height:150px;
+  box-shadow:0 12px 30px rgba(0,0,0,.20);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.card:hover{
+  transform:translateY(-2px);
+  border-color:#2c557d;
+  box-shadow:0 16px 34px rgba(0,0,0,.28)
+}
+.card:after{
+  content:"";
+  position:absolute;right:-35px;top:-45px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(40,183,255,.055)
+}
+.control-card{
+  grid-column:span 6;
+  min-height:205px;
+  border-color:#28547a
+}
+.control-card:before{
+  content:"CONTROL";
+  position:absolute;right:18px;top:17px;
+  font-size:10px;letter-spacing:1.5px;
+  color:#5e86a8;font-weight:800
+}
+.label{
+  font-size:12px;
+  color:#8fa7bf;
+  margin-bottom:13px;
+  letter-spacing:.8px;
+  font-weight:700
+}
+.value{
+  font-size:40px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-1px
+}
+.unit{font-size:15px;color:#8fa7bf;margin-left:7px;font-weight:600}
+.raw{margin-top:12px;color:#7f98b1;font-size:12px}
+.motor-btn{
+  width:100%;
+  padding:17px 18px;
+  border:1px solid transparent;
+  border-radius:13px;
+  color:white;
+  font-size:17px;
+  font-weight:800;
+  letter-spacing:.5px;
+  cursor:pointer;
+  transition:all .2s ease;
+  box-shadow:0 8px 20px rgba(0,0,0,.22)
+}
+.motor-btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.motor-btn:active{transform:translateY(1px)}
+.motor-btn.stop{
+  background:linear-gradient(135deg,#b91c1c,#ef4444);
+  border-color:#f87171
+}
+.motor-btn.start{
+  background:linear-gradient(135deg,#15803d,#22c55e);
+  border-color:#4ade80
+}
+.section{
+  margin-top:25px;
+  background:rgba(8,20,35,.75);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 12px 28px rgba(0,0,0,.18)
+}
+.section h2{
+  margin:0 0 14px;
+  font-size:18px;
+  letter-spacing:.3px
+}
+pre{
+  margin:0;
+  background:#030a13;
+  padding:17px;
+  border-radius:12px;
+  overflow:auto;
+  color:#b9cee2;
+  border:1px solid #15283e;
+  font-size:12px;
+  line-height:1.55
+}
+footer{
+  text-align:center;
+  color:#5f7892;
+  padding:25px;
+  font-size:12px;
+  letter-spacing:.5px
+}
+@media(max-width:850px){
+  .card,.control-card{grid-column:span 6}
+}
+@media(max-width:560px){
+  h1{font-size:23px}
+  .container{padding:18px 14px}
+  .card,.control-card{grid-column:span 12}
+  .value{font-size:34px}
+}
 </style>
 </head>
 <body>
@@ -59,7 +215,7 @@ footer{text-align:center;color:#64748b;padding:25px}
 <div class="card">
 <div class="label">VOLTAJE DE BATERÍA · 40061</div>
 <div><span class="value" id="bateria">--</span><span class="unit">VDC</span></div>
-<div class="raw">RAW: <span id="rawBateria">--</span></div>
+<div class="raw">Lectura Modbus · RAW: <span id="rawBateria">--</span></div>
 </div>
 
 <div class="card">
@@ -82,13 +238,13 @@ footer{text-align:center;color:#64748b;padding:25px}
 <div class="card">
 <div class="label">ESTADO DEL MOTOR · 40011</div>
 <div><span class="value" id="estadoMotor">--</span></div>
-<div class="raw">Modbus: <span id="estadoMotorRaw">--</span></div>
+<div class="raw">● Señal Modbus: <span id="estadoMotorRaw">--</span></div>
 </div>
 
 </div>
 
 <div class="section">
-<h2>Telemetría recibida</h2>
+<h2>Telemetría recibida <span style="font-size:11px;color:#6f8ba5;font-weight:500;margin-left:8px">MQTT · PCC1301</span></h2>
 <pre id="json">Esperando mensaje MQTT...</pre>
 </div>
 
