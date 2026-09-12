@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,8 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PCC1301 - Panel IoT</title>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
 <style>
 *{box-sizing:border-box}
+
 :root{
   --bg:#07111f;
   --panel:#0d1b2e;
@@ -19,6 +22,7 @@
   --red:#ef4444;
   --amber:#f59e0b;
 }
+
 body{
   margin:0;
   font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;
@@ -29,13 +33,19 @@ body{
   color:var(--text);
   min-height:100vh;
 }
+
 body:before{
   content:"";
-  position:fixed;inset:0;pointer-events:none;opacity:.22;
-  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
   background-size:36px 36px;
 }
+
 header{
   position:relative;
   padding:26px 22px 24px;
@@ -44,36 +54,64 @@ header{
   border-bottom:1px solid var(--line);
   box-shadow:0 8px 30px rgba(0,0,0,.22);
 }
+
 h1{
   margin:0 0 7px;
   font-size:30px;
   letter-spacing:1.2px;
   font-weight:800;
 }
-.subtitle{color:var(--muted);font-size:14px;letter-spacing:.5px}
-.container{max-width:1180px;margin:auto;padding:24px 22px 10px}
-.status{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+
+.subtitle{
+  color:var(--muted);
+  font-size:14px;
+  letter-spacing:.5px
+}
+
+.container{
+  max-width:1180px;
+  margin:auto;
+  padding:24px 22px 10px
+}
+
+.status{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:22px
+}
+
 .badge{
-  padding:10px 15px;border-radius:12px;
+  padding:10px 15px;
+  border-radius:12px;
   background:rgba(13,27,46,.88);
   border:1px solid var(--line);
-  color:#cbd9e8;font-size:13px;
+  color:#cbd9e8;
+  font-size:13px;
   box-shadow:0 8px 22px rgba(0,0,0,.16);
 }
+
 .dot{
-  display:inline-block;width:9px;height:9px;border-radius:50%;
-  background:var(--red);margin-right:8px;
+  display:inline-block;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--red);
+  margin-right:8px;
   box-shadow:0 0 10px rgba(239,68,68,.65)
 }
+
 .connected .dot{
   background:var(--green);
   box-shadow:0 0 12px rgba(34,197,94,.8)
 }
+
 .grid{
   display:grid;
   grid-template-columns:repeat(12,1fr);
   gap:17px
 }
+
 .card{
   grid-column:span 4;
   position:relative;
@@ -86,28 +124,41 @@ h1{
   box-shadow:0 12px 30px rgba(0,0,0,.20);
   transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
 }
+
 .card:hover{
   transform:translateY(-2px);
   border-color:#2c557d;
   box-shadow:0 16px 34px rgba(0,0,0,.28)
 }
+
 .card:after{
   content:"";
-  position:absolute;right:-35px;top:-45px;
-  width:120px;height:120px;border-radius:50%;
+  position:absolute;
+  right:-35px;
+  top:-45px;
+  width:120px;
+  height:120px;
+  border-radius:50%;
   background:rgba(40,183,255,.055)
 }
+
 .control-card{
   grid-column:span 6;
-  min-height:205px;
+  min-height:245px;
   border-color:#28547a
 }
+
 .control-card:before{
   content:"CONTROL";
-  position:absolute;right:18px;top:17px;
-  font-size:10px;letter-spacing:1.5px;
-  color:#5e86a8;font-weight:800
+  position:absolute;
+  right:18px;
+  top:17px;
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:#5e86a8;
+  font-weight:800
 }
+
 .label{
   font-size:12px;
   color:#8fa7bf;
@@ -115,37 +166,66 @@ h1{
   letter-spacing:.8px;
   font-weight:700
 }
+
 .value{
   font-size:40px;
   line-height:1;
   font-weight:800;
   letter-spacing:-1px
 }
-.unit{font-size:15px;color:#8fa7bf;margin-left:7px;font-weight:600}
-.raw{margin-top:12px;color:#7f98b1;font-size:12px}
+
+.unit{
+  font-size:15px;
+  color:#8fa7bf;
+  margin-left:7px;
+  font-weight:600
+}
+
+.raw{
+  margin-top:12px;
+  color:#7f98b1;
+  font-size:12px
+}
+
 .motor-btn{
   width:100%;
-  padding:17px 18px;
+  padding:15px 18px;
   border:1px solid transparent;
   border-radius:13px;
   color:white;
-  font-size:17px;
+  font-size:16px;
   font-weight:800;
   letter-spacing:.5px;
   cursor:pointer;
   transition:all .2s ease;
-  box-shadow:0 8px 20px rgba(0,0,0,.22)
+  box-shadow:0 8px 20px rgba(0,0,0,.22);
+  margin-bottom:10px;
 }
-.motor-btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
-.motor-btn:active{transform:translateY(1px)}
+
+.motor-btn:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.08)
+}
+
+.motor-btn:active{
+  transform:translateY(1px)
+}
+
 .motor-btn.stop{
-  background:linear-gradient(135deg,#b91c1c,#ef4444);
-  border-color:#f87171
-}
-.motor-btn.start{
   background:linear-gradient(135deg,#15803d,#22c55e);
   border-color:#4ade80
 }
+
+.motor-btn.start{
+  background:linear-gradient(135deg,#b91c1c,#ef4444);
+  border-color:#f87171
+}
+
+.motor-btn.parada{
+  background:linear-gradient(135deg,#991b1b,#ef4444);
+  border-color:#f87171
+}
+
 .section{
   margin-top:25px;
   background:rgba(8,20,35,.75);
@@ -154,11 +234,13 @@ h1{
   padding:20px;
   box-shadow:0 12px 28px rgba(0,0,0,.18)
 }
+
 .section h2{
   margin:0 0 14px;
   font-size:18px;
   letter-spacing:.3px
 }
+
 pre{
   margin:0;
   background:#030a13;
@@ -170,6 +252,7 @@ pre{
   font-size:12px;
   line-height:1.55
 }
+
 footer{
   text-align:center;
   color:#5f7892;
@@ -177,9 +260,11 @@ footer{
   font-size:12px;
   letter-spacing:.5px
 }
+
 @media(max-width:850px){
   .card,.control-card{grid-column:span 6}
 }
+
 @media(max-width:560px){
   h1{font-size:23px}
   .container{padding:18px 14px}
@@ -188,6 +273,7 @@ footer{
 }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -198,82 +284,232 @@ footer{
 <div class="container">
 
 <div class="status">
-<div class="badge" id="mqttStatus"><span class="dot"></span>MQTT: Desconectado</div>
-<div class="badge">Broker: artvic.cloud.shiftr.io</div>
-<div class="badge" id="lastUpdate">Última actualización: --</div>
+<div class="badge" id="mqttStatus">
+<span class="dot"></span>MQTT: Desconectado
+</div>
+
+<div class="badge">
+Broker: artvic.cloud.shiftr.io
+</div>
+
+<div class="badge" id="lastUpdate">
+Última actualización: --
+</div>
 </div>
 
 <div class="grid">
 
+<!-- =================================================
+     CONTROL MOTOR
+     ================================================= -->
+
 <div class="card control-card">
-<div class="label">CONTROL DE ARRANQUE / PARADA · 40300</div>
-<button id="btnMotor" class="motor-btn stop" onclick="toggleMotor()">ARRANCAR MOTOR</button>
-<div class="raw">Orden enviada por MQTT al ESP32</div>
-<div class="raw">Estado: <span id="controlEstado">Esperando</span></div>
+
+<div class="label">
+CONTROL DE ARRANQUE / PARADA · 40300
 </div>
+
+<!-- BOTÓN DE ARRANQUE -->
+<button
+id="btnMotor"
+class="motor-btn stop"
+onclick="toggleMotor()">
+ARRANCAR MOTOR
+</button>
+
+<!-- NUEVO BOTÓN DE PARADA -->
+<button
+id="btnParar"
+class="motor-btn parada"
+onclick="pararMotor()">
+🔴 PARAR MOTOR
+</button>
+
+<div class="raw">
+Orden enviada por MQTT al ESP32
+</div>
+
+<div class="raw">
+Estado: <span id="controlEstado">Esperando</span>
+</div>
+
+</div>
+
+
+<!-- =================================================
+     BATERÍA
+     ================================================= -->
 
 <div class="card">
 <div class="label">VOLTAJE DE BATERÍA · 40061</div>
-<div><span class="value" id="bateria">--</span><span class="unit">VDC</span></div>
-<div class="raw">Lectura Modbus · RAW: <span id="rawBateria">--</span></div>
+
+<div>
+<span class="value" id="bateria">--</span>
+<span class="unit">VDC</span>
 </div>
+
+<div class="raw">
+Lectura Modbus · RAW:
+<span id="rawBateria">--</span>
+</div>
+</div>
+
+
+<!-- =================================================
+     PRESIÓN
+     ================================================= -->
 
 <div class="card">
 <div class="label">PRESIÓN DE ACEITE · 40062</div>
-<div><span class="value" id="presion">--</span><span class="unit">PSI</span></div>
-<div class="raw">Valor original: <span id="kpa">--</span> kPa</div>
+
+<div>
+<span class="value" id="presion">--</span>
+<span class="unit">PSI</span>
 </div>
+
+<div class="raw">
+Valor original:
+<span id="kpa">--</span> kPa
+</div>
+</div>
+
+
+<!-- =================================================
+     TEMPERATURA
+     ================================================= -->
 
 <div class="card">
-<div class="label">TEMPERATURA REFRIGERANTE · 40064</div>
-<div><span class="value" id="temperatura">--</span><span class="unit">°F</span></div>
-<div class="raw">Equivalente: <span id="celsius">--</span> °C</div>
+<div class="label">
+TEMPERATURA REFRIGERANTE · 40064
 </div>
+
+<div>
+<span class="value" id="temperatura">--</span>
+<span class="unit">°F</span>
+</div>
+
+<div class="raw">
+Equivalente:
+<span id="celsius">--</span> °C
+</div>
+</div>
+
+
+<!-- =================================================
+     RPM
+     ================================================= -->
 
 <div class="card">
-<div class="label">VELOCIDAD DEL MOTOR · 40068</div>
-<div><span class="value" id="rpm">--</span><span class="unit">RPM</span></div>
+<div class="label">
+VELOCIDAD DEL MOTOR · 40068
 </div>
+
+<div>
+<span class="value" id="rpm">--</span>
+<span class="unit">RPM</span>
+</div>
+</div>
+
+
+<!-- =================================================
+     ESTADO MOTOR
+     ================================================= -->
 
 <div class="card">
-<div class="label">ESTADO DEL MOTOR · 40011</div>
-<div><span class="value" id="estadoMotor">--</span></div>
-<div class="raw">● Señal Modbus: <span id="estadoMotorRaw">--</span></div>
+<div class="label">
+ESTADO DEL MOTOR · 40011
+</div>
+
+<div>
+<span class="value" id="estadoMotor">--</span>
+</div>
+
+<div class="raw">
+● Señal Modbus:
+<span id="estadoMotorRaw">--</span>
+</div>
 </div>
 
 </div>
+
+
+<!-- =================================================
+     TELEMETRÍA
+     ================================================= -->
 
 <div class="section">
-<h2>Telemetría recibida <span style="font-size:11px;color:#6f8ba5;font-weight:500;margin-left:8px">MQTT · PCC1301</span></h2>
-<pre id="json">Esperando mensaje MQTT...</pre>
-</div>
+
+<h2>
+Telemetría recibida
+<span style="font-size:11px;color:#6f8ba5;font-weight:500;margin-left:8px">
+MQTT · PCC1301
+</span>
+</h2>
+
+<pre id="json">
+Esperando mensaje MQTT...
+</pre>
 
 </div>
 
-<footer>PCC1301 IoT Dashboard</footer>
+</div>
+
+<footer>
+PCC1301 IoT Dashboard
+</footer>
+
 
 <script>
+
 // =====================================================
 // CONFIGURACIÓN SHIFTR.IO
 // =====================================================
-// Cloud shiftr.io usa WebSocket seguro por WSS en 443.
-// Usuario/token:
-// usuario = artvic
-// contraseña = hola
 
-const MQTT_URL = "wss://artvic:hola@artvic.cloud.shiftr.io:443";
-const CLIENT_ID = "dashboard_pcc1301_" + Math.random().toString(16).substring(2,10);
+const MQTT_URL =
+"wss://artvic:hola@artvic.cloud.shiftr.io:443";
 
-const TOPIC_TELEMETRIA = "pcc1301/telemetria";
-const TOPIC_BATERIA = "pcc1301/bateria";
-const TOPIC_PRESION = "pcc1301/presion_psi";
-const TOPIC_TEMPERATURA = "pcc1301/temperatura_f";
-const TOPIC_RPM = "pcc1301/rpm";
-const TOPIC_ESTADO_MOTOR = "pcc1301/estado_motor";
-const TOPIC_CONTROL = "pcc1301/control/arranque";
+const CLIENT_ID =
+"dashboard_pcc1301_" +
+Math.random().toString(16).substring(2,10);
+
+
+// =====================================================
+// TOPICOS MQTT
+// =====================================================
+
+const TOPIC_TELEMETRIA =
+"pcc1301/telemetria";
+
+const TOPIC_BATERIA =
+"pcc1301/bateria";
+
+const TOPIC_PRESION =
+"pcc1301/presion_psi";
+
+const TOPIC_TEMPERATURA =
+"pcc1301/temperatura_f";
+
+const TOPIC_RPM =
+"pcc1301/rpm";
+
+const TOPIC_ESTADO_MOTOR =
+"pcc1301/estado_motor";
+
+const TOPIC_CONTROL =
+"pcc1301/control/arranque";
+
+
+// =====================================================
+// VARIABLES
+// =====================================================
 
 let lastData = {};
 let motorEncendido = false;
+
+
+// =====================================================
+// CONEXIÓN MQTT
+// =====================================================
 
 const client = mqtt.connect(MQTT_URL, {
     clientId: CLIENT_ID,
@@ -282,7 +518,13 @@ const client = mqtt.connect(MQTT_URL, {
     connectTimeout: 10000
 });
 
+
+// =====================================================
+// MQTT CONECTADO
+// =====================================================
+
 client.on("connect", function() {
+
     setStatus(true);
 
     client.subscribe([
@@ -293,147 +535,340 @@ client.on("connect", function() {
         TOPIC_RPM,
         TOPIC_ESTADO_MOTOR
     ], function(err) {
+
         if (err) {
             console.error("Error suscribiendo:", err);
         }
+
     });
+
 });
+
+
+// =====================================================
+// RECONEXIÓN
+// =====================================================
 
 client.on("reconnect", function() {
     setStatus(false, "Reconectando...");
 });
 
+
+// =====================================================
+// OFFLINE
+// =====================================================
+
 client.on("offline", function() {
     setStatus(false, "Sin conexión");
 });
 
+
+// =====================================================
+// ERROR
+// =====================================================
+
 client.on("error", function(err) {
+
     console.error("MQTT:", err);
+
     setStatus(false, "Error MQTT");
+
 });
 
+
+// =====================================================
+// MENSAJES MQTT
+// =====================================================
+
 client.on("message", function(topic, message) {
+
     const payload = message.toString();
 
     if (topic === TOPIC_TELEMETRIA) {
+
         try {
+
             const data = JSON.parse(payload);
+
             lastData = {...lastData, ...data};
+
             actualizarDashboard();
+
             document.getElementById("json").textContent =
                 JSON.stringify(data, null, 2);
+
         } catch(e) {
+
             console.error("JSON inválido:", payload);
+
         }
+
     } else {
+
         actualizarIndividual(topic, payload);
+
     }
 
     document.getElementById("lastUpdate").textContent =
-        "Última actualización: " + new Date().toLocaleTimeString();
+        "Última actualización: " +
+        new Date().toLocaleTimeString();
+
 });
 
+
+// =====================================================
+// ACTUALIZAR DASHBOARD
+// =====================================================
+
 function actualizarDashboard() {
+
     if (lastData.bateria !== undefined)
+
         document.getElementById("bateria").textContent =
             Number(lastData.bateria).toFixed(1);
 
+
     if (lastData.presion_psi !== undefined)
+
         document.getElementById("presion").textContent =
             Number(lastData.presion_psi).toFixed(1);
 
+
     if (lastData.temperatura_f !== undefined)
+
         document.getElementById("temperatura").textContent =
             Number(lastData.temperatura_f).toFixed(1);
 
+
     if (lastData.rpm !== undefined) {
+
         const r = Number(lastData.rpm);
-        document.getElementById("rpm").textContent = r.toFixed(1);
+
+        document.getElementById("rpm").textContent =
+            r.toFixed(1);
+
     }
+
 
     if (lastData.estado_motor !== undefined) {
+
         const e = Number(lastData.estado_motor);
+
         motorEncendido = e === 1;
+
         document.getElementById("estadoMotor").textContent =
             motorEncendido ? "ENCENDIDO" : "APAGADO";
+
         document.getElementById("estadoMotorRaw").textContent = e;
+
         actualizarBotonMotor();
+
     }
 
-    // Cálculos auxiliares para mostrar también las unidades originales
+
+    // Cálculos auxiliares
+
     if (lastData.presion_psi !== undefined)
+
         document.getElementById("kpa").textContent =
-            (Number(lastData.presion_psi) / 0.145038).toFixed(1);
+            (Number(lastData.presion_psi) / 0.145038)
+            .toFixed(1);
+
 
     if (lastData.temperatura_f !== undefined)
+
         document.getElementById("celsius").textContent =
-            ((Number(lastData.temperatura_f)-32)/1.8).toFixed(1);
+            ((Number(lastData.temperatura_f)-32)/1.8)
+            .toFixed(1);
+
 }
+
+
+// =====================================================
+// ACTUALIZAR DATOS INDIVIDUALES
+// =====================================================
 
 function actualizarIndividual(topic, payload) {
+
     const v = Number(payload);
 
+
     if (topic === TOPIC_BATERIA) {
+
         lastData.bateria = v;
+
     }
+
+
     if (topic === TOPIC_PRESION) {
+
         lastData.presion_psi = v;
+
     }
+
+
     if (topic === TOPIC_TEMPERATURA) {
+
         lastData.temperatura_f = v;
+
     }
+
+
     if (topic === TOPIC_RPM) {
+
         lastData.rpm = v;
+
     }
+
 
     if (topic === TOPIC_ESTADO_MOTOR) {
+
         lastData.estado_motor = v;
+
     }
 
+
     actualizarDashboard();
+
 }
 
+
+// =====================================================
+// BOTÓN ARRANQUE / PARADA ORIGINAL
+// =====================================================
+
 function toggleMotor() {
-    const nuevoEstado = motorEncendido ? 0 : 1;
+
+    const nuevoEstado =
+        motorEncendido ? 0 : 1;
+
 
     if (!client.connected) {
+
         document.getElementById("controlEstado").textContent =
             "MQTT desconectado";
+
         return;
     }
 
-    client.publish(TOPIC_CONTROL, String(nuevoEstado), {qos: 0, retain: false});
+
+    client.publish(
+        TOPIC_CONTROL,
+        String(nuevoEstado),
+        {
+            qos: 0,
+            retain: false
+        }
+    );
+
 
     document.getElementById("controlEstado").textContent =
-        nuevoEstado === 1 ? "Orden ARRANQUE enviada" : "Orden PARADA enviada";
+        nuevoEstado === 1
+        ? "Orden ARRANQUE enviada"
+        : "Orden PARADA enviada";
+
 }
+
+
+// =====================================================
+// NUEVA FUNCIÓN: PARAR MOTOR
+// =====================================================
+
+function pararMotor() {
+
+    if (!client.connected) {
+
+        document.getElementById("controlEstado").textContent =
+            "MQTT desconectado";
+
+        return;
+    }
+
+
+    // Enviar 0 al ESP32
+    client.publish(
+        TOPIC_CONTROL,
+        "0",
+        {
+            qos: 0,
+            retain: false
+        }
+    );
+
+
+    document.getElementById("controlEstado").textContent =
+        "🔴 Orden PARADA enviada";
+
+
+    console.log(
+        "Orden de PARADA enviada: 40300 = 0"
+    );
+
+}
+
+
+// =====================================================
+// ACTUALIZAR BOTÓN PRINCIPAL
+// =====================================================
 
 function actualizarBotonMotor() {
-    const btn = document.getElementById("btnMotor");
+
+    const btn =
+        document.getElementById("btnMotor");
+
 
     if (motorEncendido) {
-        btn.textContent = "PARAR MOTOR";
-        btn.className = "motor-btn start";
+
+        btn.textContent =
+            "ARRANCAR MOTOR";
+
+        btn.className =
+            "motor-btn stop";
+
     } else {
-        btn.textContent = "ARRANCAR MOTOR";
-        btn.className = "motor-btn stop";
+
+        btn.textContent =
+            "ARRANCAR MOTOR";
+
+        btn.className =
+            "motor-btn stop";
+
     }
+
 }
 
+
+// =====================================================
+// ESTADO MQTT
+// =====================================================
+
 function setStatus(connected, text) {
-    const box = document.getElementById("mqttStatus");
+
+    const box =
+        document.getElementById("mqttStatus");
+
 
     if (connected) {
+
         box.classList.add("connected");
-        box.innerHTML = '<span class="dot"></span>MQTT: Conectado';
+
+        box.innerHTML =
+            '<span class="dot"></span>MQTT: Conectado';
+
     } else {
+
         box.classList.remove("connected");
+
         box.innerHTML =
             '<span class="dot"></span>MQTT: ' +
             (text || "Desconectado");
+
     }
+
 }
+
 </script>
 
 </body>
 </html>
+```
